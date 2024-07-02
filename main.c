@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "opt.h"
 #include "scheduler.h"
@@ -9,8 +10,18 @@ enum scheduler scheduler = SCHEDULER_MFP;
 bool  verbose = false;
 float aging   = 0.5; // Valor default.
 
+struct process
+{
+    int pid;
+    int arrival;
+    int burst;
+    int priority;
+    struct process *next;
+};
+
 int main(int argc, char *argv[])
 {
+    // XXX locale!!
     opt(argc, argv);
 
     puts(verbose ? "verboso" : "nao verboso");
@@ -18,6 +29,48 @@ int main(int argc, char *argv[])
         puts("multiple file");
     else
         printf("shortest with aging %f\n", (double)aging);
+
+    struct process *processes = NULL;
+    int n_process = 0;
+
+    // XXX Rascunho. Representação depende dos algoritmos de escalonamento.
+    {
+        int pid;
+        int arrival;
+        int burst;
+        int priority;
+        while (4 == scanf("%d:%d:%d:%d\n", &pid, &arrival, &burst, &priority))
+        {
+            for (int i = 0; i < n_process; i++)
+            {
+                if (pid == processes[i].pid)
+                {
+                    fprintf(stderr, "PID %d ocorre mais de uma vez, quando devem ser únicos.\n", pid);
+                    return EXIT_FAILURE;
+                }
+            }
+
+            if (arrival < 0)
+            {
+                fprintf(stderr, "Tempo de chegada deve ser igual ou maior que zero. Leu %d para processo com PID %d\n", arrival, pid);
+                return EXIT_FAILURE;
+            }
+
+            if (burst <= 0)
+            {
+                fprintf(stderr, "Tempo de execução deve maior que zero. Leu %d para processo com PID %d\n", arrival, pid);
+                return EXIT_FAILURE;
+            }
+
+            if (priority < 0 || priority > 7)
+            {
+                fprintf(stderr, "Prioridade deve ser de zero a sete. Leu %d para processo com PID %d\n", priority, pid);
+                return EXIT_FAILURE;
+            }
+
+            // XXX Adiciona processo
+        }
+    }
 
 #if 0
     /* inicializar clock */

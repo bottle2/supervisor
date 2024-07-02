@@ -1,0 +1,7 @@
+Usar OOP, interface e duas impl + união
+
+ponteiros de função
+
+- Adição de processos void(struct <T>, int pid, int dur, int prior);
+
+- Choose next 
