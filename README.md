@@ -4,6 +4,10 @@ burst, pseudo-dispositivo, clock
 
 ## Contratos
 
+Não classificado:
+
+- Menor PID ganha
+
 ### Contrato: alimentação de dados
 
 - [X] Ler linhas
@@ -11,7 +15,7 @@ burst, pseudo-dispositivo, clock
 - [X] Ler tempo de chegada, igual ou maior que zero
 - [X] Ler tempo de burst, maior que zero
 - [X] Ler prioridade, entre 0 e 7 (inclusive)
-- [ ] Adicionar processos
+- [X] Adicionar processos por ordem de chegada
 
 ### Contrato: ciclo de vida
 
@@ -53,3 +57,8 @@ burst, pseudo-dispositivo, clock
 ### Contrato: saída verbosa
 
 - [ ] 
+
+### Contrato: outros
+
+- [ ] Localização apropriada
+- [ ] Organização do código

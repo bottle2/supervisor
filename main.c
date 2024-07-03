@@ -30,47 +30,72 @@ int main(int argc, char *argv[])
     else
         printf("shortest with aging %f\n", (double)aging);
 
-    struct process *processes = NULL;
-    int n_process = 0;
+    struct process *pending = NULL;
 
-    // XXX Rascunho. Representação depende dos algoritmos de escalonamento.
+    // Lê lista de processos, lista encadeada ordenada por arrival. Linear.
+    // XXX Vários com mesmo, arrival, ordenar pelo PID?
     {
-        int pid;
-        int arrival;
-        int burst;
-        int priority;
-        while (4 == scanf("%d:%d:%d:%d\n", &pid, &arrival, &burst, &priority))
+        struct process c = {0};
+
+        while (4 == scanf("%d:%d:%d:%d\n", &c.pid, &c.arrival, &c.burst, &c.priority))
         {
-            for (int i = 0; i < n_process; i++)
+            struct process **place = &pending;
+
+            // Verifica PID e descobre onde posicionar processo, mas NÃO adiciona ainda.
+            for (; *place != NULL && (*place)->arrival < c.arrival; place = &(*place)->next)
             {
-                if (pid == processes[i].pid)
+                if (c.pid == (*place)->pid)
                 {
-                    fprintf(stderr, "PID %d ocorre mais de uma vez, quando devem ser únicos.\n", pid);
+                    fprintf(stderr, "PID %d ocorre mais de uma vez, quando devem ser únicos.\n", c.pid);
                     return EXIT_FAILURE;
                 }
             }
 
-            if (arrival < 0)
+            // Verifica resto dos PIDs.
+            for (struct process *rest = *place; rest != NULL; rest = rest->next)
+                if (c.pid == rest->pid)
+                {
+                    fprintf(stderr, "PID %d ocorre mais de uma vez, quando devem ser únicos.\n", c.pid);
+                    return EXIT_FAILURE;
+                }
+
+            if (c.arrival < 0)
             {
-                fprintf(stderr, "Tempo de chegada deve ser igual ou maior que zero. Leu %d para processo com PID %d\n", arrival, pid);
+                fprintf(stderr, "Tempo de chegada deve ser igual ou maior que zero. Leu %d para processo com PID %d\n", c.arrival, c.pid);
                 return EXIT_FAILURE;
             }
 
-            if (burst <= 0)
+            if (c.burst <= 0)
             {
-                fprintf(stderr, "Tempo de execução deve maior que zero. Leu %d para processo com PID %d\n", arrival, pid);
+                fprintf(stderr, "Tempo de execução deve maior que zero. Leu %d para processo com PID %d\n", c.arrival, c.pid);
                 return EXIT_FAILURE;
             }
 
-            if (priority < 0 || priority > 7)
+            if (c.priority < 0 || c.priority > 7)
             {
-                fprintf(stderr, "Prioridade deve ser de zero a sete. Leu %d para processo com PID %d\n", priority, pid);
+                fprintf(stderr, "Prioridade deve ser de zero a sete. Leu %d para processo com PID %d\n", c.priority, c.pid);
                 return EXIT_FAILURE;
             }
 
-            // XXX Adiciona processo
+            struct process *new = malloc(sizeof (*new));
+
+            if (!new)
+            {
+                fprintf(stderr, "Faltou memória para criar processo com PID %d\n", c.pid);
+                return EXIT_FAILURE;
+            }
+
+            if (*place != NULL)
+                c.next = *place;
+            *new = c;
+            *place = new;
         }
     }
+
+#if 0
+    for (struct process *em = pending; em != NULL; em = em->next)
+        printf("%3d:%3d:%3d:%3d\n", em->pid, em->arrival, em->burst, em->priority);
+#endif
 
 #if 0
     /* inicializar clock */
