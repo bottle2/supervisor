@@ -1,8 +1,11 @@
+#include <assert.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "opt.h"
+#include "process.h"
 #include "scheduler.h"
 
 enum scheduler scheduler = SCHEDULER_MFP;
@@ -10,18 +13,11 @@ enum scheduler scheduler = SCHEDULER_MFP;
 bool  verbose = false;
 float aging   = 0.5; // Valor default.
 
-struct process
-{
-    int pid;
-    int arrival;
-    int burst;
-    int priority;
-    struct process *next;
-};
-
 int main(int argc, char *argv[])
 {
-    // XXX locale!!
+    char *category = setlocale(LC_ALL, "pt-BR.UTF8");
+    assert(category != NULL);
+
     opt(argc, argv);
 
     puts(verbose ? "verboso" : "nao verboso");
@@ -29,6 +25,8 @@ int main(int argc, char *argv[])
         puts("multiple file");
     else
         printf("shortest with aging %f\n", (double)aging);
+
+    scheduler_init(scheduler);
 
     struct process *pending = NULL;
 
@@ -97,6 +95,77 @@ int main(int argc, char *argv[])
         printf("%3d:%3d:%3d:%3d\n", em->pid, em->arrival, em->burst, em->priority);
 #endif
 
+#define HLINE  "=========+=================+=================+============\n"
+#define ROWFMT " %8d"   "| %16d"          "| %16d"          "| %11d"     "\n"
+    puts(
+               HLINE
+               "Processo | Tempo total     | Tempo total     | Tempo total\n"
+               "         | em estado Ready | em estado Wait  | no sistema \n"
+               HLINE
+    );
+
+    {
+        struct process *waiting = NULL;
+        struct process *current = NULL;
+
+        for (int clock = 0; pending != NULL || waiting != NULL || !scheduler_empty(); clock++)
+        {
+            while (pending != NULL && clock == pending->arrival)
+            {
+                struct process *temp = pending;
+                pending = pending->next;
+                free(temp); // XXX push to escalonador
+            }
+
+            for (struct process *aa = waiting; a != NULL; a = a->next)
+            {
+                // Checar se acabou a porra
+                if (IOTerm())
+                {
+                    // XXX Do it porra
+                }
+            }
+
+            if (NULL == current)
+                current = scheduler_next(NULL);
+
+            if (current != NULL)
+            {
+                assert(current->burst > 0);
+
+                current->burst--;
+
+                if (0 == current->burst)
+                {
+                    // XXX Calcula "coisas" e printa antes de liberar
+                    free(current);
+                    current = NULL;
+                }
+
+                if (IOReq())
+                {
+                    current = NULL;
+                    waiting; // XXX
+                    // Botar na fila de Wait
+                }
+            }
+        }
+    }
+
+    puts(HLINE "\n");
+    #undef HLINE
+
+    int dummy = 0;
+    printf(
+        "Tempo total de simulação.: %d\n"
+        "Número de processos......: %d\n"
+        "Menor tempo de execução..: %d\n"
+        "Maior tempo de execução..: %d\n"
+        "Tempo médio de execução..: %d\n"
+        "Tempo médio em Ready/Wait: %d\n"
+        ,
+        dummy, dummy, dummy, dummy, dummy, dummy
+    );
 #if 0
     /* inicializar clock */
     clock=0;

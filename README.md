@@ -1,5 +1,9 @@
 # lala
 
+## Decisões de design
+
+XXX Discutir objetos globais
+
 burst, pseudo-dispositivo, clock
 
 ## Contratos
@@ -19,15 +23,16 @@ Não classificado:
 
 ### Contrato: ciclo de vida
 
-- [ ] Terminar simulação quando não houver mais processos em um "estado válido"
+- [ ] Configurar escalonador desejado
+- [ ] Término de simulação
 
-### Contrato: processo
+### Contrato: processos
 
-- [ ] 
-
-### Contrato: dispositivos
-
-- [ ]
+- [ ] Escolha de processo a executar no momento
+- [ ] API para manusear listas encadeadas
+- [ ] Tentar solicitar IO
+- [ ] Devolver ao escalonador processos cuja IO completou
+- [ ] XXX quantum
 
 ### Contrato: política de Múltiplas Filas com Prioridades (FMP)
 
@@ -52,7 +57,7 @@ Não classificado:
 - [ ] Tempo total que cada processo ficou em cada estado: _ready_, _wait_ e _running_
 - [ ] Processos com maior e menor tempo no sistema
 - [ ] Atualizar as estatísticas ao completar processo
-- [ ] Impressão formatada de estatísticas na saída padrão
+- [X] Impressão formatada de estatísticas na saída padrão
 
 ### Contrato: saída verbosa
 
@@ -60,5 +65,5 @@ Não classificado:
 
 ### Contrato: outros
 
-- [ ] Localização apropriada
+- [X] Localização apropriada
 - [ ] Organização do código
