@@ -1,10 +1,12 @@
 # lala
 
-## Decisões de design
+## Decisões de design, limitações e defeitos
 
-XXX Discutir objetos globais
+Discutir objetos globais
 
 burst, pseudo-dispositivo, clock
+
+Namespace de macros do preprocessor é poluído.
 
 ## Contratos
 

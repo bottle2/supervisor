@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "io.h"
 #include "opt.h"
 #include "process.h"
 #include "scheduler.h"
 
-enum scheduler scheduler = SCHEDULER_MFP;
-
-bool  verbose = false;
-float aging   = 0.5; // Valor default.
+bool verbose = false;
 
 int main(int argc, char *argv[])
 {
@@ -21,12 +19,6 @@ int main(int argc, char *argv[])
     opt(argc, argv);
 
     puts(verbose ? "verboso" : "nao verboso");
-    if (SCHEDULER_MFP == scheduler)
-        puts("multiple file");
-    else
-        printf("shortest with aging %f\n", (double)aging);
-
-    scheduler_init(scheduler);
 
     struct process *pending = NULL;
 
@@ -117,7 +109,7 @@ int main(int argc, char *argv[])
                 free(temp); // XXX push to escalonador
             }
 
-            for (struct process *aa = waiting; a != NULL; a = a->next)
+            for (struct process *a = waiting; a != NULL; a = a->next)
             {
                 // Checar se acabou a porra
                 if (IOTerm())
@@ -127,7 +119,7 @@ int main(int argc, char *argv[])
             }
 
             if (NULL == current)
-                current = scheduler_next(NULL);
+                current = scheduler_next();
 
             if (current != NULL)
             {

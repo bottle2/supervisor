@@ -1,7 +1,7 @@
 CFLAGS=-Wpedantic -Wall -Wextra -Wshadow
 
 TARGET=supervisor
-OBJECT=main.o opt.o
+OBJECT=io.o main.o mfp.o opt.o osPRNG.o psjf.o scheduler.o
 
 $(TARGET):$(OBJECT)
 	$(CC) $(CFLAGS) -o $@ $(OBJECT) $(LDLIBS)

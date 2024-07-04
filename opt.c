@@ -21,7 +21,6 @@ static const int cmd_start = 9;
 #line 41 "opt.rl"
 
 
-extern enum scheduler scheduler;
 extern bool verbose;
 extern float aging;
 
@@ -31,12 +30,12 @@ void opt(int argc, char *argv[])
     //char *eof = NULL;
 
     
-#line 35 "opt.c"
+#line 34 "opt.c"
 	{
 	cs = cmd_start;
 	}
 
-#line 53 "opt.rl"
+#line 52 "opt.rl"
 
     for (int i = 1; i < argc; i++)
     {
@@ -44,13 +43,13 @@ void opt(int argc, char *argv[])
         char *mark = NULL;
 
         
-#line 48 "opt.c"
+#line 47 "opt.c"
 	{
 	switch ( cs )
 	{
 tr4:
 #line 18 "opt.rl"
-	{ scheduler = SCHEDULER_MFP; }
+	{ scheduler_mfp(); }
 #line 24 "opt.rl"
 	{ {p++; cs = 9; goto _out;} }
 	goto st9;
@@ -69,7 +68,7 @@ tr17:
 st9:
 	p += 1;
 case 9:
-#line 73 "opt.c"
+#line 72 "opt.c"
 	if ( (*p) == 45 )
 		goto st1;
 	goto st0;
@@ -87,11 +86,11 @@ case 1:
 	goto st0;
 tr5:
 #line 18 "opt.rl"
-	{ scheduler = SCHEDULER_MFP; }
+	{ scheduler_mfp(); }
 	goto st2;
 tr11:
 #line 19 "opt.rl"
-	{ scheduler = SCHEDULER_PSJF; aging = 0.5; }
+	{ scheduler_psjf(); aging = 0.5; }
 	goto st2;
 tr18:
 #line 17 "opt.rl"
@@ -100,7 +99,7 @@ tr18:
 st2:
 	p += 1;
 case 2:
-#line 104 "opt.c"
+#line 103 "opt.c"
 	switch( (*p) ) {
 		case 0: goto tr4;
 		case 70: goto tr5;
@@ -110,11 +109,11 @@ case 2:
 	goto st0;
 tr6:
 #line 18 "opt.rl"
-	{ scheduler = SCHEDULER_MFP; }
+	{ scheduler_mfp(); }
 	goto st3;
 tr12:
 #line 19 "opt.rl"
-	{ scheduler = SCHEDULER_PSJF; aging = 0.5; }
+	{ scheduler_psjf(); aging = 0.5; }
 	goto st3;
 tr19:
 #line 17 "opt.rl"
@@ -123,7 +122,7 @@ tr19:
 st3:
 	p += 1;
 case 3:
-#line 127 "opt.c"
+#line 126 "opt.c"
 	switch( (*p) ) {
 		case 0: goto tr8;
 		case 48: goto tr9;
@@ -135,14 +134,14 @@ case 3:
 	goto st0;
 tr8:
 #line 19 "opt.rl"
-	{ scheduler = SCHEDULER_PSJF; aging = 0.5; }
+	{ scheduler_psjf(); aging = 0.5; }
 #line 24 "opt.rl"
 	{ {p++; cs = 10; goto _out;} }
 	goto st10;
 st10:
 	p += 1;
 case 10:
-#line 146 "opt.c"
+#line 145 "opt.c"
 	switch( (*p) ) {
 		case 45: goto st1;
 		case 48: goto tr22;
@@ -151,7 +150,7 @@ case 10:
 	goto st0;
 tr9:
 #line 19 "opt.rl"
-	{ scheduler = SCHEDULER_PSJF; aging = 0.5; }
+	{ scheduler_psjf(); aging = 0.5; }
 #line 20 "opt.rl"
 	{ mark = p; }
 	goto st4;
@@ -162,7 +161,7 @@ tr22:
 st4:
 	p += 1;
 case 4:
-#line 166 "opt.c"
+#line 165 "opt.c"
 	switch( (*p) ) {
 		case 0: goto tr14;
 		case 46: goto st5;
@@ -178,7 +177,7 @@ case 5:
 	goto st0;
 tr10:
 #line 19 "opt.rl"
-	{ scheduler = SCHEDULER_PSJF; aging = 0.5; }
+	{ scheduler_psjf(); aging = 0.5; }
 #line 20 "opt.rl"
 	{ mark = p; }
 	goto st6;
@@ -189,7 +188,7 @@ tr23:
 st6:
 	p += 1;
 case 6:
-#line 193 "opt.c"
+#line 192 "opt.c"
 	switch( (*p) ) {
 		case 0: goto tr14;
 		case 46: goto st7;
@@ -205,11 +204,11 @@ case 7:
 	goto st0;
 tr7:
 #line 18 "opt.rl"
-	{ scheduler = SCHEDULER_MFP; }
+	{ scheduler_mfp(); }
 	goto st8;
 tr13:
 #line 19 "opt.rl"
-	{ scheduler = SCHEDULER_PSJF; aging = 0.5; }
+	{ scheduler_psjf(); aging = 0.5; }
 	goto st8;
 tr20:
 #line 17 "opt.rl"
@@ -218,7 +217,7 @@ tr20:
 st8:
 	p += 1;
 case 8:
-#line 222 "opt.c"
+#line 221 "opt.c"
 	switch( (*p) ) {
 		case 0: goto tr17;
 		case 70: goto tr18;
@@ -231,7 +230,7 @@ case 8:
 	_out: {}
 	}
 
-#line 60 "opt.rl"
+#line 59 "opt.rl"
     }
 
     if (cs < 9 )

@@ -5,26 +5,22 @@
 
 #include "process.h"
 
-enum scheduler
-{
-    SCHEDULER_MFP, // Múltiplas filas com prioridade.
-    SCHEDULER_PSJF, // Preemptive Shortest Job First
-};
-// XXX Fragmentação
-// TODO Some com enumeração, caso comum escolhe um só, uma função pra cada escalonador
+#define SCHEDULER_XS X(mfp) X(psjf)
 
-union scheduler2; // XXX namespace issue
+#define X(ALG) void scheduler_##ALG(void);
+SCHEDULER_XS
+#undef X
 
-void scheduler_init(enum scheduler which);
+#define SCHEDULER_API_XS(X, Y)     \
+X(Y, struct process *, next, void); \
+X(Y, void, push, struct process *)
 
-#define SCHEDULER_XS(X) X(mfp) X(psjf)
-#define SCHEDULER_API_XS(X) X(next) X(push) X(empty)
+#define AS_TYPE(_, R, OP, ...) typedef R OP##_f(__VA_ARGS__)
+#define AS_PUBLIC(_, R, OP, ...) OP##_f scheduler_##OP
 
-void scheduler_mfp(void);
-void scheduler_psjf(void);
+SCHEDULER_API_XS(AS_TYPE  , 0);
+SCHEDULER_API_XS(AS_PUBLIC, 0);
 
-extern struct process * (*scheduler_next)(union scheduler2 *);
-extern void (*scheduler_push)(union scheduler2 *, struct process *); // Exclusivamente processos Ready 
-extern bool (*scheduler_empty)(union scheduler2 *);
+bool scheduler_empty(void);
 
 #endif

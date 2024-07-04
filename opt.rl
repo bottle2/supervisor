@@ -15,8 +15,8 @@ static void usage(char *prog_name)
     machine cmd;
 
     action set_verbose { verbose = true; } 
-    action set_mfp  { scheduler = SCHEDULER_MFP; }
-    action set_psjf { scheduler = SCHEDULER_PSJF; aging = 0.5; }
+    action set_mfp  { scheduler_mfp(); }
+    action set_psjf { scheduler_psjf(); aging = 0.5; }
     action set_mark { mark = p; }
     action set_aging { aging = strtof(mark, NULL); }
     action error { usage(argv[0]); }
@@ -40,7 +40,6 @@ static void usage(char *prog_name)
     write data noerror nofinal noentry;
 }%%
 
-extern enum scheduler scheduler;
 extern bool verbose;
 extern float aging;
 
