@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
     {
         struct process *waiting = NULL;
         struct process *current = NULL;
+        int quantum = -1;
 
         for (int clock = 0; pending != NULL || waiting != NULL || !scheduler_empty(); clock++)
         {
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
             }
 
             if (NULL == current)
-                current = scheduler_next();
+                current = scheduler_next(&quantum);
 
             if (current != NULL)
             {

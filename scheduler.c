@@ -3,16 +3,19 @@
 
 #include "scheduler.h"
 
-#define AS_INNER(_, R, OP, ...) static OP##_f *inner_##OP
-SCHEDULER_API_XS(AS_INNER, 0);
+#define AS_INIT_IMPL(ALG) void scheduler_##ALG(void) { SCHEDULER_API_XS(AS_ASS, ALG); }
+#define AS_ASS(OP, ALG, ...) inner_##OP = ALG##_##OP
+
+SCHEDULER_API_XS(AS_FUN, static *inner);
+SCHEDULER_XS(AS_INIT_IMPL)
 
 static int n_inside = 0;
 
-struct process * scheduler_next(void)
+struct process * scheduler_next(int quantum[static 1])
 {
     n_inside--;
     assert(n_inside >= 0);
-    return inner_next();
+    return inner_next(quantum);
 }
 
 void scheduler_push(struct process *p)
@@ -24,13 +27,4 @@ void scheduler_push(struct process *p)
 bool scheduler_empty(void)
 {
     return !n_inside;
-}
-
-#define AS_DECL(ALG, R, OP, ...) R ALG##_##OP(__VA_ARGS__)
-#define AS_ASS(ALG, R, OP, ...) inner_##OP = ALG##_##OP
-
-#define X(ALG) void scheduler_##ALG(void) { \
-    SCHEDULER_API_XS(AS_DECL, ALG); SCHEDULER_API_XS(AS_ASS, ALG); \
-}
-SCHEDULER_XS
-#undef X
+    }

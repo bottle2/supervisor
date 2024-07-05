@@ -1,9 +1,11 @@
 #include <stddef.h>
 
 #include "process.h"
+#include "scheduler.h"
 
-struct process *mfp_next(void)
+struct process *mfp_next(int quantum[static 1])
 {
+    (void)quantum;
     return NULL;
 }
 
