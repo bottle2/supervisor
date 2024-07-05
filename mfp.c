@@ -43,7 +43,9 @@ void mfp_push(struct process *p, enum state from)
     // I'm a fucking three-star programmer! and I didn't even flinch, bitch
     struct process ***end = &lasts[7];
 
-    if (STATE_WAIT == from)
+    if (STATE_NEW == from)
+        end = &lasts[p->priority];
+    else if (STATE_WAIT == from)
         end = &lasts[p->priority = 0];
     else if (p->priority <= 6)
         end = &lasts[++p->priority];

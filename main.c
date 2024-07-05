@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
                HLINE
     );
 
+    // XXX Na verdade, todo clock checa se tem processo com prioridade maior?
     {
         struct process *waiting = NULL;
         struct process *current = NULL;
