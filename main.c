@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
     char *category = setlocale(LC_ALL, "pt-BR.UTF8");
     assert(category != NULL);
 
+    scheduler_mfp();
     opt(argc, argv);
 
     puts(verbose ? "verboso" : "nao verboso");
@@ -87,10 +88,10 @@ int main(int argc, char *argv[])
         printf("%3d:%3d:%3d:%3d\n", em->pid, em->arrival, em->burst, em->priority);
 #endif
 
-#define HLINE  "=========+=================+=================+============\n"
+#define HLINE  "=========+=================+=================+============"
 #define ROWFMT " %8d"   "| %16d"          "| %16d"          "| %11d"     "\n"
     puts(
-               HLINE
+               HLINE "\n"
                "Processo | Tempo total     | Tempo total     | Tempo total\n"
                "         | em estado Ready | em estado Wait  | no sistema \n"
                HLINE
@@ -105,48 +106,60 @@ int main(int argc, char *argv[])
         {
             while (pending != NULL && clock == pending->arrival)
             {
-                struct process *temp = pending;
+                struct process *arrived = pending;
                 pending = pending->next;
-                free(temp); // XXX push to escalonador
+                arrived->next = NULL;
+                scheduler_push(arrived, STATE_READY);
             }
 
-            for (struct process *a = waiting; a != NULL; a = a->next)
-            {
-                // Checar se acabou a porra
+            struct process **waiting_follow = &waiting;
+
+            for (; *waiting_follow != NULL; waiting_follow = &(*waiting_follow)->next)
                 if (IOTerm())
                 {
-                    // XXX Do it porra
+                    struct process *completed = *waiting_follow;
+                    *waiting_follow = completed->next;
+                    completed->next = NULL;
+                    scheduler_push(completed, STATE_WAIT);
+		    if (NULL == *waiting_follow)
+                        break; // Very feio.
                 }
-            }
 
             if (NULL == current)
                 current = scheduler_next(&quantum);
 
             if (current != NULL)
             {
+                assert(quantum >= 1 || -1 == quantum);
                 assert(current->burst > 0);
+                assert(NULL == current->next);
 
                 current->burst--;
 
-                if (0 == current->burst)
+                if (quantum > 0)
+                    quantum--;
+
+                if (0 == quantum)
+                {
+                    scheduler_push(current, STATE_READY);
+                    current = NULL;
+                }
+                else if (0 == current->burst)
                 {
                     // XXX Calcula "coisas" e printa antes de liberar
                     free(current);
                     current = NULL;
                 }
-
-                if (IOReq())
+                else if (IOReq())
                 {
+                    *waiting_follow = current;
                     current = NULL;
-                    waiting; // XXX
-                    // Botar na fila de Wait
                 }
             }
         }
     }
 
     puts(HLINE "\n");
-    #undef HLINE
 
     int dummy = 0;
     printf(
@@ -159,53 +172,6 @@ int main(int argc, char *argv[])
         ,
         dummy, dummy, dummy, dummy, dummy, dummy
     );
-#if 0
-    /* inicializar clock */
-    clock=0;
 
-    /* adicionar novos processos ao estado Ready */
-    /* (seu código aqui) */
-
-    clock++;
-    /* Loop principal do Supervisor */
-    while( /* há processos no sistema */ ) {
-        currentProcess = /* escolher processo a executar */;
-        while( 1 ) { /* loop principal de gerência de processos */
-            /* se houver, adicionar novos processos ao estado Ready */
-
-            /* enquanto houver processo(s) em estado Wait (I/O) */
-            /* verificar se o I/O completou para cada processo em espera (ordem FIFO) */
-            status = IOTerm();
-            if (status == 1){
-                /* colocar o processo que completou em estado Ready */
-            }
-
-            /* se o processo terminou sua execução (tempo restante 1) */
-            /* marcar o processo atual como swappedOut (termino de execução) */
-
-            /* se for um escalonador preemptivo e há processo com */
-            /* prioridade superior em estado Ready */
-            /* marcar o processo atual como swappedOut (preempção) */
-
-            /* verificar se o processo atual requisita I/O */
-            if ( /* processo atual não está completo */)
-                status = IOReq();
-            if (status == 1){
-                /* need to do I/O */
-                /* marcar o processo atual como swappedOut (wait on I/O) */
-            } else {
-                /* marcar o processo atual como swappedOut (fim do quantum) */
-            }
-
-            /* atualizar estatísticas de execução */
-
-            clock++;
-
-            /* se o processo atual foi swappedOut */
-            /* mover o processo para a fila adequada e sair deste laço */
-        } /* fim do loop de gerência de processos */
-
-    } /* fim do loop principal do Supervisor */
-#endif
     return 0;
 }

@@ -10,6 +10,8 @@ struct process
     struct process *next;
 };
 
+enum state { STATE_WAIT, STATE_READY, };
+
 // XXX slk API pras putarias de lista encadeada
 // inclusive the **
 

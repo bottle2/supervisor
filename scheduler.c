@@ -18,13 +18,13 @@ struct process * scheduler_next(int quantum[static 1])
     return inner_next(quantum);
 }
 
-void scheduler_push(struct process *p)
+void scheduler_push(struct process *p, enum state from)
 {
     n_inside++;
-    inner_push(p);
+    inner_push(p, from);
 }
 
 bool scheduler_empty(void)
 {
     return !n_inside;
-    }
+}

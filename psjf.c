@@ -11,7 +11,8 @@ struct process *psjf_next(int quantum[static 1])
     return NULL;
 }
 
-void psjf_push(struct process *p)
+void psjf_push(struct process *p, enum state from)
 {
     (void)p;
+    (void)from;
 }

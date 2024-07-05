@@ -9,7 +9,7 @@
 
 #define SCHEDULER_API_XS(X, Y)                     \
     X(next, Y, struct process *, int[static 1]   ); \
-    X(push, Y, void            , struct process *)
+    X(push, Y, void            , struct process *, enum state)
 
 #define AS_INIT(ALG) void scheduler_##ALG(void);
 #define AS_DEP(ALG) SCHEDULER_API_XS(AS_FUN, ALG);

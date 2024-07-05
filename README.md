@@ -1,12 +1,15 @@
 # lala
 
-## Decisões de design, limitações e defeitos
+## Decisões de design, limitações, defeitos e divergências
 
-Discutir objetos globais
+Discutir objetos globais, vantagem do linker vs ponteiros
 
 burst, pseudo-dispositivo, clock
 
 Namespace de macros do preprocessor é poluído.
+
+A especificação pede para causar preempção num processo assim que surgir outro
+com prioridade superior ao atual, porém nesta implementação isso não ocorre.
 
 ## Contratos
 
