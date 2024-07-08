@@ -3,11 +3,13 @@
 
 struct process
 {
-    int pid;
+    int pid; // XXX fazer const essa porra porra porra porra porra
     int arrival;
     int burst;
     int priority;
     struct process *next;
+
+    int quantum;
 };
 
 enum state { STATE_NEW, STATE_WAIT, STATE_READY, };

@@ -97,13 +97,11 @@ int main(int argc, char *argv[])
                HLINE
     );
 
-    // XXX Na verdade, todo clock checa se tem processo com prioridade maior?
     {
         struct process *waiting = NULL;
         struct process *current = NULL;
-        int quantum = -1;
 
-        for (int clock = 0; pending != NULL || waiting != NULL || !scheduler_empty(); clock++)
+        for (int clock = 0; pending != NULL || waiting != NULL || !scheduler_is_empty; clock++)
         {
             while (pending != NULL && clock == pending->arrival)
             {
@@ -126,26 +124,16 @@ int main(int argc, char *argv[])
                         break; // Very feio.
                 }
 
-            if (NULL == current)
-                current = scheduler_next(&quantum);
+            scheduler_next(&current);
 
             if (current != NULL)
             {
-                assert(quantum >= 1 || -1 == quantum);
                 assert(current->burst > 0);
                 assert(NULL == current->next);
 
                 current->burst--;
 
-                if (quantum > 0)
-                    quantum--;
-
-                if (0 == quantum)
-                {
-                    scheduler_push(current, STATE_READY);
-                    current = NULL;
-                }
-                else if (0 == current->burst)
+                if (0 == current->burst)
                 {
                     // XXX Calcula "coisas" e printa antes de liberar
                     free(current);

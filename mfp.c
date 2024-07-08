@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "process.h"
 #include "scheduler.h"
 
 static struct process  *heads[8] = {0};
+static struct process **slots[8] = {0};
 static struct process **lasts[8] = {
     [0] = &heads[0],
     [1] = &heads[1],
@@ -17,39 +19,106 @@ static struct process **lasts[8] = {
 };
 // Refatorar isso, só se for com Boost Preprocessor!
 
-struct process *mfp_next(int quantum[static 1])
-{
-    struct process *chosen = NULL;
+static bool is_pushing = false;
 
+void mfp_next(struct process *current[static 1])
+{
+    assert(NULL == *current || (*current)->quantum >= 1);
+
+    // Trata quantum.
+    if (*current != NULL && !(--(*current)->quantum))
+    {
+        mfp_push(*current, STATE_READY);
+        *current = NULL;
+    }
+
+    // Escolhe candidato.
+    struct process **chosen = NULL;
+    int quantum = 0;
     for (int i = 0; i <= 7; i++)
         if (heads[i])
         {
-            chosen = heads[i];
-            heads[i] = chosen->next;
-            chosen->next = NULL;
-            if (NULL == heads[i])
-                lasts[i] = &heads[i];
-            assert(i == chosen->priority);
-            *quantum = 1 << i;
+            chosen = &heads[i];
+            quantum = 1 << i;
+            break;
         }
 
-    return chosen;
+    // Descarta candidato ou força preempção.
+    if (*current != NULL && chosen != NULL)
+    {
+        if ((*current)->priority >= (*chosen)->priority)
+            chosen = NULL;
+        else
+        {
+            mfp_push(*current, STATE_READY);
+            *current = NULL;
+        }
+    }
+
+    // Substitui processo atual.
+    if (chosen != NULL)
+    {
+        assert(NULL == *current);
+
+        *current = *chosen;
+
+        *chosen = (*chosen)->next;
+
+        (*current)->next = NULL;
+        (*current)->quantum = quantum;
+    }
+
+    // Atualiza estado interno.
+    scheduler_is_empty = true;
+    for (int i = 0; i < 7; i++)
+        if (NULL == heads[i])
+            lasts[i] = &heads[i];
+        else
+        {
+            scheduler_is_empty = false;
+            while (*lasts[i] != NULL)
+                lasts[i] = &(*lasts[i])->next;
+        }
+    is_pushing = false;
 }
 
 void mfp_push(struct process *p, enum state from)
 {
     assert(NULL == p->next);
 
-    // I'm a fucking three-star programmer! and I didn't even flinch, bitch
-    struct process ***end = &lasts[7];
+    scheduler_is_empty = false;
 
-    if (STATE_NEW == from)
-        end = &lasts[p->priority];
-    else if (STATE_WAIT == from)
-        end = &lasts[p->priority = 0];
-    else if (p->priority <= 6)
-        end = &lasts[++p->priority];
+    if (!is_pushing)
+    {
+        (void)memcpy(slots, lasts, sizeof (lasts));
+        is_pushing = true;
+    }
 
-    **end = p;
-    *end = &p->next;
+    struct process **where = slots[7];
+
+    switch (from)
+    {
+        case STATE_NEW:
+            where = slots[p->priority];
+        break;
+
+        case STATE_READY:
+            if (0 == p->quantum)
+                p->priority++;
+            where = slots[p->priority];
+        break;
+
+        case STATE_WAIT:
+            where = slots[p->priority];
+            p->priority = 0;
+        break;
+
+        default: assert(!"Unknown state!"); break;
+    }
+
+    while (*where != NULL && (*where)->pid < p->pid)
+        where = &(*where)->next;
+
+    p->next = *where;
+    *where = p;
 }

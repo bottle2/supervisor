@@ -11,6 +11,47 @@ Namespace de macros do preprocessor é poluído.
 A especificação pede para causar preempção num processo assim que surgir outro
 com prioridade superior ao atual, porém nesta implementação isso não ocorre.
 
+Okay. Antes nós só pegávamos `next` quando a CPU estava ociosa. Agora,
+devemos checar também quando novos processos entram pro PSJF. Na verdade,
+sempre que um IO completar, talvez deva reconsiderar qual executar!
+Então um processo _sempre_ pode mudar.
+
+E aí, o _quantum_ varia. PSJF não precisa de quantum! Porque quanto mais o processo
+mais curto executar, mais curto ainda será! SLK. Mas como fica o burst??
+Tipo, o `next` controla??
+
+Mas pro MFP, quantum começa em --, pois só o next decrementa daí!
+E a próxima execução do `next` checa o quantum. Ou a prioridade!
+
+Porque antes do `next` "chegam" processos novos e desbloqueados!
+
+E tem a competição do PID. """""""""""""filas""""""""""""" meu ovo.
+
+Quantos tiros no pé vamos nos dar?
+
+Tipo a porra do `empty`.
+
+E aqui temos a PORRA da contradição da especificação do trabalho.
+No final, fala que deve preservar FIFO, ou seja, a fila se comportar como FILA
+Mas antes, fica falando de preferir PID menor e escolher menor prioridade.
+E aí?
+
+Interpretação. Mantém FIFO. Substitui só se prioridade menor. Mas `push` insere EM ORDEM
+por causa da regra do PID só para os AO MESMO tempo NAQUELE ciclo de clock. BULLSHIT é claro.
+
+Podia montar uma única chamada `push` que recebe uma lista encadeada inteira
+
+E o PSJFC? SLK
+
+uuuuuuuhhhhrr
+
+push(`*`, int `n_new`, `n_wait`, `n_`
+
+E NA VERDADE, preempção ao FIM do burst. mas que é ao mesmo tempo que ANTES do próximo??
+Tudo igual.
+
+Marcar no push um true, e no next um false, entre true e false ordenar tudo.
+
 ## Contratos
 
 Não classificado:

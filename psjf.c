@@ -5,10 +5,9 @@
 
 float aging = 0.5; // Valor default.
 
-struct process *psjf_next(int quantum[static 1])
+void psjf_next(struct process *current[static 1])
 {
-    (void)quantum;
-    return NULL;
+    (void)current;
 }
 
 void psjf_push(struct process *p, enum state from)
