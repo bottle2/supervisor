@@ -9,7 +9,15 @@ struct process
     int priority;
     struct process *next;
 
-    int quantum;
+    union
+    {
+        int quantum;
+        struct
+        {
+            int runtime;
+            float Ta; // Estimativa anterior.
+        };
+    };
 };
 
 enum state { STATE_NEW, STATE_WAIT, STATE_READY, };

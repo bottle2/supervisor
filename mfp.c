@@ -46,7 +46,7 @@ void mfp_next(struct process *current[static 1])
     // Descarta candidato ou força preempção.
     if (*current != NULL && chosen != NULL)
     {
-        if ((*current)->priority >= (*chosen)->priority)
+        if ((*current)->priority <= (*chosen)->priority)
             chosen = NULL;
         else
         {
@@ -70,7 +70,17 @@ void mfp_next(struct process *current[static 1])
 
     // Atualiza estado interno.
     scheduler_is_empty = true;
-    for (int i = 0; i < 7; i++)
+    // XXX check when last is chosen and update it directly.
+    for (int i = 0; i <= 7; i++)
+#if 1
+    {
+        if (heads[i])
+            scheduler_is_empty = false;
+        lasts[i] = &heads[i];
+        while (*lasts[i] != NULL)
+            lasts[i] = &(*lasts[i])->next;
+    }
+#else
         if (NULL == heads[i])
             lasts[i] = &heads[i];
         else
@@ -79,10 +89,11 @@ void mfp_next(struct process *current[static 1])
             while (*lasts[i] != NULL)
                 lasts[i] = &(*lasts[i])->next;
         }
+#endif
     is_pushing = false;
 }
 
-void mfp_push(struct process *p, enum state from)
+void mfp_push(struct process p[static 1], enum state from)
 {
     assert(NULL == p->next);
 

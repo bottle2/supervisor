@@ -83,9 +83,19 @@ int main(int argc, char *argv[])
         }
     }
 
-#if 0
+#if 1
     for (struct process *em = pending; em != NULL; em = em->next)
+    {
         printf("%3d:%3d:%3d:%3d\n", em->pid, em->arrival, em->burst, em->priority);
+
+        float Ta = em->burst;
+        for (int ta = 1; ta < 10; ta++)
+        {
+            extern float aging;
+            Ta = aging * ta + (1 - aging) * Ta;
+            printf("Tn = %f\n", (double)Ta);
+        }
+    }
 #endif
 
 #define HLINE  "=========+=================+=================+============"
