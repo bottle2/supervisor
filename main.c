@@ -10,21 +10,26 @@
 #include "scheduler.h"
 
 bool verbose = false;
+int ready_or_waiting = 0;
+
+char *state = "running";
 
 int main(int argc, char *argv[])
 {
-    char *category = setlocale(LC_ALL, "pt-BR.UTF8");
-    assert(category != NULL);
-
     scheduler_mfp();
     opt(argc, argv);
 
-    puts(verbose ? "verboso" : "nao verboso");
+    char *category = setlocale(LC_ALL, "pt-BR.UTF8");
+    assert(category != NULL);
 
     struct process *pending = NULL;
 
+    int n_process = 0;
+    int min_burst = INT_MAX;
+    int max_burst = 0;
+    int mean_burst = 0;
+
     // Lê lista de processos, lista encadeada ordenada por arrival. Linear.
-    // XXX Vários com mesmo, arrival, ordenar pelo PID?
     {
         struct process c = {0};
 
@@ -76,30 +81,41 @@ int main(int argc, char *argv[])
                 return EXIT_FAILURE;
             }
 
+            c.runtime = c.burst;
             if (*place != NULL)
                 c.next = *place;
             *new = c;
             *place = new;
+
+            n_process++;
+	    if (c.burst < min_burst)
+		    min_burst = c.burst;
+	    if (c.burst > max_burst)
+		    max_burst = c.burst;
+	    mean_burst += c.burst;
         }
+
+        if (0 == n_process)
+            return EXIT_FAILURE;
+
+	mean_burst /= n_process;
     }
 
-#if 1
-    for (struct process *em = pending; em != NULL; em = em->next)
+    int *completeds = malloc(sizeof (int) * n_process);
+    if (!completeds)
     {
-        printf("%3d:%3d:%3d:%3d\n", em->pid, em->arrival, em->burst, em->priority);
-
-        float Ta = em->burst;
-        for (int ta = 1; ta < 10; ta++)
-        {
-            extern float aging;
-            Ta = aging * ta + (1 - aging) * Ta;
-            printf("Tn = %f\n", (double)Ta);
-        }
+        perror(NULL);
+        exit(EXIT_FAILURE);
     }
+    int n_completed = 0;
+
+#if 0
+    for (struct process *em = pending; em != NULL; em = em->next)
+        printf("%3d:%3d:%3d:%3d\n", em->pid, em->arrival, em->burst, em->priority);
 #endif
 
 #define HLINE  "=========+=================+=================+============"
-#define ROWFMT " %8d"   "| %16d"          "| %16d"          "| %11d"     "\n"
+#define ROWFMT " %-8d"  "| %-16d"         "| %-16d"         "| %-11d"    "\n"
     puts(
                HLINE "\n"
                "Processo | Tempo total     | Tempo total     | Tempo total\n"
@@ -107,17 +123,21 @@ int main(int argc, char *argv[])
                HLINE
     );
 
+    int clock = 0;
+
     {
         struct process *waiting = NULL;
         struct process *current = NULL;
 
-        for (int clock = 0; pending != NULL || waiting != NULL || !scheduler_is_empty; clock++)
+        for (; current != NULL || pending != NULL || waiting != NULL || !scheduler_is_empty; clock++)
         {
+
             while (pending != NULL && clock == pending->arrival)
             {
                 struct process *arrived = pending;
                 pending = pending->next;
                 arrived->next = NULL;
+                arrived->first_clock = clock;
                 scheduler_push(arrived, STATE_READY);
             }
 
@@ -126,42 +146,84 @@ int main(int argc, char *argv[])
             for (; *waiting_follow != NULL; waiting_follow = &(*waiting_follow)->next)
                 if (IOTerm())
                 {
+                    completeds[n_completed++] = (*waiting_follow)->pid;
                     struct process *completed = *waiting_follow;
                     *waiting_follow = completed->next;
                     completed->next = NULL;
                     scheduler_push(completed, STATE_WAIT);
-		    if (NULL == *waiting_follow)
+                    if (NULL == *waiting_follow)
                         break; // Very feio.
                 }
+                else
+		{
+                    ready_or_waiting++;
+		    (*waiting_follow)->waiting++;
+		}
 
             scheduler_next(&current);
+
+            bool req_io = false;
+            int pid = -1;
+            int burst = -1;
+            bool ended = false;
 
             if (current != NULL)
             {
                 assert(current->burst > 0);
                 assert(NULL == current->next);
 
-                current->burst--;
+                pid = current->pid;
+
+                burst = --current->burst;
 
                 if (0 == current->burst)
                 {
-                    // XXX Calcula "coisas" e printa antes de liberar
+                    assert(current->ready + current->waiting < clock - current->first_clock + 1);
+                    printf(ROWFMT, current->pid, current->ready, current->waiting, clock - current->first_clock + 1);
                     free(current);
                     current = NULL;
+                    state = "end";
+                    ended = true;
                 }
                 else if (IOReq())
                 {
                     *waiting_follow = current;
                     current = NULL;
+                    req_io = state = "wait";
                 }
             }
+            else
+                state = "idle";
+
+            if (verbose)
+            {
+                fprintf(stderr, "%d:", clock);
+
+                if (NULL == current && !req_io && !ended)
+                    fprintf(stderr, "null:null");
+                else
+                    fprintf(stderr, "%d:%d", pid, burst);
+
+                fprintf(stderr, ":%s", req_io ? "true" : "false");
+
+                if (!n_completed)
+                    fprintf(stderr, ":null");
+                else for (int i = 0; i < n_completed; i++)
+                    fprintf(stderr, "%c%d", ":,"[!!i], completeds[i]);
+
+                fprintf(stderr, ":%s\n", state);
+            }
+
+            state = "running";
+
+            n_completed = 0;
         }
     }
 
-    puts(HLINE "\n");
+    free(completeds);
 
-    int dummy = 0;
     printf(
+        HLINE "\n\n"
         "Tempo total de simulação.: %d\n"
         "Número de processos......: %d\n"
         "Menor tempo de execução..: %d\n"
@@ -169,7 +231,7 @@ int main(int argc, char *argv[])
         "Tempo médio de execução..: %d\n"
         "Tempo médio em Ready/Wait: %d\n"
         ,
-        dummy, dummy, dummy, dummy, dummy, dummy
+        clock, n_process, min_burst, max_burst, mean_burst, ready_or_waiting / n_process
     );
 
     return 0;

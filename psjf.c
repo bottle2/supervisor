@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stddef.h>
 
 #include "process.h"
@@ -8,16 +9,30 @@ float aging = 0.5; // Valor default.
 
 static struct process *ready = NULL;
 
-//static float Ta(float ta, float XXX terminar essa porra de merda
+static float Tn(struct process p[static 1])
+{
+    return p->Ta = aging * (p->runtime - p->burst) + (1 - aging) * p->Ta;
+}
 
 void psjf_next(struct process *current[static 1])
 {
     struct process **shortest = NULL;
 
+    float Tn_shortest = *current ? Tn(*current) : HUGE_VAL;
+
     for (struct process **i = &ready; *i; i = &(*i)->next)
     {
+        extern int ready_or_waiting;
+        ready_or_waiting++;
+	(*i)->ready++;
 #if 1
-        // XXX Calcular porra de exponential smoothing
+        float Tn_candidate = Tn(*i);
+
+        if (Tn_candidate < Tn_shortest)
+        {
+            Tn_shortest = Tn_candidate;
+            shortest = i;
+        }
 #else
         if (!shortest)
         {
@@ -36,9 +51,14 @@ void psjf_next(struct process *current[static 1])
         *current = *shortest;
         *shortest = (*shortest)->next;
         (*current)->next = NULL;
+        (*current)->ready--;
 
         if (old)
+        {
+            extern char *state;
+            state = "preempted";
             psjf_push(old, STATE_READY);
+        }
     }
 
     scheduler_is_empty = !ready;

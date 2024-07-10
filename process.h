@@ -3,8 +3,9 @@
 
 struct process
 {
-    int pid; // XXX fazer const essa porra porra porra porra porra
+    int pid;
     int arrival;
+    int runtime;
     int burst;
     int priority;
     struct process *next;
@@ -12,17 +13,14 @@ struct process
     union
     {
         int quantum;
-        struct
-        {
-            int runtime;
-            float Ta; // Estimativa anterior.
-        };
+        float Ta; // Estimativa anterior.
     };
+
+    int first_clock;
+    int waiting;
+    int ready;
 };
 
 enum state { STATE_NEW, STATE_WAIT, STATE_READY, };
-
-// XXX slk API pras putarias de lista encadeada
-// inclusive the **
 
 #endif

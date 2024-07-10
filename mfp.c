@@ -30,6 +30,8 @@ void mfp_next(struct process *current[static 1])
     {
         mfp_push(*current, STATE_READY);
         *current = NULL;
+        extern char *state;
+        state = "preempted";
     }
 
     // Escolhe candidato.
@@ -52,6 +54,8 @@ void mfp_next(struct process *current[static 1])
         {
             mfp_push(*current, STATE_READY);
             *current = NULL;
+            extern char *state;
+            state = "preempted";
         }
     }
 
@@ -78,7 +82,12 @@ void mfp_next(struct process *current[static 1])
             scheduler_is_empty = false;
         lasts[i] = &heads[i];
         while (*lasts[i] != NULL)
+        {
+            extern int ready_or_waiting;
+            ready_or_waiting++;
+	    (*lasts[i])->ready++;
             lasts[i] = &(*lasts[i])->next;
+        }
     }
 #else
         if (NULL == heads[i])
