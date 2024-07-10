@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <locale.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -19,8 +20,7 @@ int main(int argc, char *argv[])
     scheduler_mfp();
     opt(argc, argv);
 
-    char *category = setlocale(LC_ALL, "pt-BR.UTF8");
-    assert(category != NULL);
+    setlocale(LC_ALL, "pt-BR.UTF8");
 
     struct process *pending = NULL;
 

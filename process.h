@@ -10,11 +10,8 @@ struct process
     int priority;
     struct process *next;
 
-    union
-    {
-        int quantum;
-        float Ta; // Estimativa anterior.
-    };
+    int quantum;
+    float Ta; // Estimativa anterior.
 
     int first_clock;
     int waiting;
